@@ -3,100 +3,68 @@ using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
+    [Header("Horizontal Movement")]
     [SerializeField] private float speed = 150f;
-    [SerializeField] private float jumpForce = 8f;
-    [SerializeField] private float groundAcceleration = 1f;
     [SerializeField] private float airAcceleration = 0.7f;
+
+    [Tooltip("How much to smooth out the movement")]
+    [Range(0, .3f)]
+    [SerializeField]
+    private float movementSmoothing = .05f;
+
+    [Header("Vertical Movement")]
+    [SerializeField] private float jumpForce = 8f;
     [SerializeField] private float gravityScale = 2f;
-    
+    [Header("- Jump Buffer")]
+    [SerializeField] private bool canBufferJump; // Buffer combined with static jumps better.
+    [SerializeField] private float jumpBuffer = 0.2f;
+    private float jumpBufferCountDown;
+
+    [Header("Camera")]
     [SerializeField] private Transform cameraPivotPointTransform;
     [SerializeField] private float lookSensitivityHorizontal = 10f; // Sensitivity of the camera movement horizontally.
     [SerializeField] private float lookSensitivityVertikal = 10f; // Sensitivity of the camera movement vertically.
     [SerializeField] private float lookDeepEndAngle = -50f; // Low end position of the inclination angle.
     [SerializeField] private float lookHighEndAngle = 80f; // High end position of the inclination angle.
 
+    [Header("Ground Check")]
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private Transform groundCheck;
     [SerializeField] private float groundCheckRadius = 0.5f;
-    
-    [SerializeField] private float levelDominoPositionX = -72f;
-    [SerializeField] private float levelDominoPositionY = 9f;
-    [SerializeField] private float levelDominoPositionZ = 40f;
 
     private Rigidbody rb;
-    private Transform playerTransform;
 
     private Vector2 moveInput;
     private Vector2 lookInput;
 
-    //private Vector3 velocity;
+    private Vector3 velocity;
     private Vector3 rotation; // Direction of horizontal movement of the camera.
     private Vector3 rotation2; // Direction of vertical movement of the camera.
 
-    private void Awake()
+    private bool contextStartedJump;
+    private bool alreadyTriggered; // contextStartedJump
+    private bool contextCanceledJump;
+
+    void Start()
     {
-        rb = GetComponent<Rigidbody>(); 
-        playerTransform = GetComponent<Transform>();
+        rb = GetComponent<Rigidbody>();
+        Cursor.lockState = CursorLockMode.Locked;
     }
 
     private void FixedUpdate()
     {
-        /*OnDrawGizmos();*/
+        Jump();
     }
 
     private void Update()
     {
         LookAround();
 
+
+
         Move3D();
 
-        //rb.velocity = velocity;
-
-        //Fall();
-    }
-
-    private void Move3D()
-    {
-        Vector3 moveDirection = Vector3.zero;
-
-
-        float acceleration = isGrounded() ? groundAcceleration : airAcceleration;
-
-        //velocity.x = Mathf.Lerp(velocity.x, moveInput.x * speed, acceleration * Time.deltaTime);
-        //velocity.z = Mathf.Lerp(velocity.z, moveInput.z * speed, acceleration * Time.deltaTime);
-
-        moveDirection.x = moveInput.x * speed * Time.deltaTime * acceleration; 
-
-        moveDirection.y = rb.velocity.y;
-        
-        moveDirection.z = moveInput.y * speed * Time.deltaTime * acceleration;
-
-        moveDirection = Quaternion.Euler(0, playerTransform.eulerAngles.y, 0) * moveDirection; // move direction
-        rb.velocity = new Vector3(moveDirection.x, moveDirection.y, moveDirection.z);
-    }
-
-    private void LookAround()
-    {
-        //rotation.x -= lookInput.y * lookSensitivity * Time.deltaTime;
-
-        rotation.y += lookInput.x * lookSensitivityHorizontal * Time.deltaTime; // Horizontal
-
-        rotation2.x += lookInput.y * lookSensitivityVertikal * Time.deltaTime; // Vertical
-
-        rotation2.x = Mathf.Clamp(rotation2.x, lookDeepEndAngle, lookHighEndAngle);
-        rotation2.y = rotation.y;
-        
-        playerTransform.eulerAngles = rotation;
-
-        cameraPivotPointTransform.eulerAngles = rotation2;
-    }
-
-    private void Fall()
-    {
-        if (rb.velocity.y < 0)
-        {
-            rb.velocity = new Vector3(0, rb.velocity.y * gravityScale * Time.deltaTime, 0);
-        }
+        Fall();
     }
 
     public void OnMove(InputAction.CallbackContext context)
@@ -106,31 +74,97 @@ public class PlayerController : MonoBehaviour
 
     public void OnJump(InputAction.CallbackContext context)
     {
-        if (isGrounded() && context.started == true)
-        {
-            rb.velocity = new Vector3(0, jumpForce, 0);
-        }
+        if (context.started)
+            contextStartedJump = true;
+
+        contextCanceledJump = context.canceled;
+
     }
 
-    ///
     public void OnLook(InputAction.CallbackContext context)
     {
         lookInput = context.ReadValue<Vector2>();
+    }
+
+    private void Jump()
+    {
+        // Buffer
+        if (canBufferJump && rb.velocity.y < 0)
+        {
+            if (contextStartedJump) jumpBufferCountDown = jumpBuffer;
+
+            jumpBufferCountDown -= Time.deltaTime;
+        }
+
+        if (alreadyTriggered == false &&
+            /* Ground Jump */ (IsGrounded() && contextStartedJump) ||
+            /* Buffer */      (canBufferJump && jumpBufferCountDown > 0f && IsGrounded()))
+
+        {
+            rb.AddForce(0, jumpForce, 0, ForceMode.Impulse);
+            alreadyTriggered = true;
+        }
+        else alreadyTriggered = false;
+
+        contextStartedJump = false;
+    }
+
+    /// <summary>
+    /// Moves the character in the direction of the input. If the character is on the ground, 
+    /// it moves with full speed, otherwise it moves with reduced speed (airAcceleration).
+    /// </summary>
+    private void Move3D()
+    {
+        float acceleration = IsGrounded() ? 1f : airAcceleration;
+        float moveSpeed = speed * acceleration;
+
+        Vector3 moveDirection = new Vector3(moveInput.x * moveSpeed, rb.velocity.y, moveInput.y * moveSpeed);
+        moveDirection = Quaternion.Euler(0, transform.eulerAngles.y, 0) * moveDirection; // move direction to look direction
+
+        // Move the character by finding the target velocity
+        Vector3 targetVelocity = new Vector3(moveDirection.x, rb.velocity.y, moveDirection.z);
+        // And then smoothing it out and applying it to the character
+        rb.velocity = Vector3.SmoothDamp(rb.velocity, targetVelocity, ref velocity, movementSmoothing);
+    }
+
+    /// <summary>
+    /// Rotates yaw of the player and pitch of camera pivot point.
+    /// </summary>
+    private void LookAround()
+    {
+        rotation.y += lookInput.x * lookSensitivityHorizontal * Time.deltaTime; // yaw of the player
+
+        rotation2.x += lookInput.y * lookSensitivityVertikal * Time.deltaTime; // pitch of camera pivot point
+
+        rotation2.x = Mathf.Clamp(rotation2.x, lookDeepEndAngle, lookHighEndAngle); // pitch in between low and high end angle
+        rotation2.y = rotation.y;
+
+        transform.eulerAngles = rotation; // yaw of the player
+
+        cameraPivotPointTransform.eulerAngles = rotation2; // pitch of camera pivot point
+    }
+
+    private void Fall()
+    {
+        if (rb.velocity.y < 0)
+        {
+            rb.velocity = new Vector3(rb.velocity.x, rb.velocity.y * gravityScale, rb.velocity.z);
+        }
     }
 
     /// <summary>
     /// Checks overlap of collider with groundChecks position on ground's collider.
     /// </summary>
     /// <returns></returns>
-    bool isGrounded()
+    bool IsGrounded()
     {
         Collider[] colliders = Physics.OverlapSphere(groundCheck.position, groundCheckRadius, groundLayer);
         return colliders.Length > 0;
     }
 
-    /*void OnDrawGizmos()
+    void OnDrawGizmos()
     {
-        Gizmos.color = isGrounded() ? Color.green : Color.red;
+        Gizmos.color = IsGrounded() ? Color.green : Color.red;
         Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
-    }*/
+    }
 }
