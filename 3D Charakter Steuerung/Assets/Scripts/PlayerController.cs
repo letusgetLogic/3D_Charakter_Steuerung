@@ -32,6 +32,12 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Transform groundCheck;
     [SerializeField] private float groundCheckRadius = 0.5f;
 
+    [Header("Bowl to climb up")]
+    [SerializeField] private Transform bowlTransform;
+    [SerializeField] private float bowlRadius = 0.5f;
+    [SerializeField] private float climbGoal = 0.1f;
+    [SerializeField] private float climbSpeed = 1f;
+
     private Rigidbody rb;
 
     private Vector2 moveInput;
@@ -59,11 +65,8 @@ public class PlayerController : MonoBehaviour
     private void Update()
     {
         LookAround();
-
-
-
+        ClimbUpOnEdge();
         Move3D();
-
         Fall();
     }
 
@@ -102,6 +105,8 @@ public class PlayerController : MonoBehaviour
 
         {
             rb.AddForce(0, jumpForce, 0, ForceMode.Impulse);
+            
+            jumpBufferCountDown = 0f;
             alreadyTriggered = true;
         }
         else alreadyTriggered = false;
@@ -146,9 +151,19 @@ public class PlayerController : MonoBehaviour
 
     private void Fall()
     {
-        if (rb.velocity.y < 0)
+        //if (rb.velocity.y < 0)
+        //{
+        //    rb.velocity = new Vector3(rb.velocity.x, rb.velocity.y * gravityScale, rb.velocity.z);
+        //}
+    }
+
+    private void ClimbUpOnEdge()
+    {
+        if (IsBowlToClimbGrounded())
         {
-            rb.velocity = new Vector3(rb.velocity.x, rb.velocity.y * gravityScale, rb.velocity.z);
+            // Move the player up to the bowl position
+            Vector3 targetPosition = new Vector3(transform.position.x, transform.position.y + climbGoal, transform.position.z);
+            transform.position = Vector3.Lerp(transform.position, targetPosition, Time.deltaTime * speed);
         }
     }
 
@@ -162,9 +177,31 @@ public class PlayerController : MonoBehaviour
         return colliders.Length > 0;
     }
 
+    /// <summary>
+    /// Checks overlap of collider with bowl position on ground's collider.
+    /// </summary>
+    /// <returns></returns>
+    bool IsBowlToClimbGrounded()
+    {
+        if (IsGrounded()) 
+            return false;
+        
+        Collider[] colliders = Physics.OverlapSphere(bowlTransform.position, bowlRadius, groundLayer);
+        return colliders.Length > 0;
+    }
+
     void OnDrawGizmos()
     {
         Gizmos.color = IsGrounded() ? Color.green : Color.red;
         Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
+
+        Gizmos.color = IsBowlToClimbGrounded() ? Color.green : Color.red;
+        Gizmos.DrawWireSphere(bowlTransform.position, bowlRadius);
+    }
+
+    public void EnableRigid(bool _enable)
+    {
+        rb.isKinematic = !_enable;
+        rb.detectCollisions = _enable;
     }
 }
