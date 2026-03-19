@@ -1,13 +1,10 @@
 using System.Collections;
 using UnityEngine;
-using static UnityEditor.Experimental.GraphView.GraphView;
+
 
 [RequireComponent(typeof(LerpMovement))]
 public class Spaceship : MonoBehaviour
 {
-    [Header("References")]
-    [SerializeField] private PlayerController playerController;
-
     [Header("Settings")]
     [SerializeField] private float delayAnimUp = 2f;
     [SerializeField] private float delayAnimDown = 3f;
@@ -15,6 +12,8 @@ public class Spaceship : MonoBehaviour
     [SerializeField] private Transform targetTransform;
     [SerializeField] private AnimationCurve animCurveUp;
     [SerializeField] private AnimationCurve animCurveDown;
+
+    private PlayerController playerController;
 
     private Vector3 defaultPosition;
     private LerpMovement lerp;
@@ -45,29 +44,37 @@ public class Spaceship : MonoBehaviour
         }
     }
 
-    private void OnTriggerEnter(Collider other)
+    private void OnTriggerEnter(Collider _collider)
     {
-        if (other.CompareTag("Player"))
+        if (_collider.CompareTag("Player"))
         {
+            playerController = _collider.GetComponent<PlayerController>();
+            playerController.IsOnSpaceship = true;
+
             if (coroutineDown != null)
             {
+                StopCoroutine(coroutineDown);
                 coroutineDown = null;
             }
 
-            coroutineUp = StartCoroutine(FlyToTheMoon(other.transform));
+            coroutineUp = StartCoroutine(FlyToTheMoon(_collider.transform));
         }
     }
 
-    private void OnTriggerExit(Collider other)
+    private void OnTriggerExit(Collider _collider)
     {
-        if (other.CompareTag("Player"))
+            if (_collider.CompareTag("Player"))
         {
+            playerController = _collider.GetComponent<PlayerController>();
+            playerController.IsOnSpaceship = false;
+
             if (coroutineUp != null)
             {
+                StopCoroutine(coroutineUp);
                 coroutineUp = null;
             }
 
-            coroutineDown = StartCoroutine(BackToHome(other.transform));
+            coroutineDown = StartCoroutine(BackToHome(_collider.transform));
         }
     }
 
@@ -75,7 +82,7 @@ public class Spaceship : MonoBehaviour
     {
         yield return new WaitForSeconds(delayAnimUp);
 
-        _player.SetParent(transform);
+        _player.SetParent(transform, true);
 
         Vector3 targetPosition = targetTransform.position;
 
@@ -99,7 +106,8 @@ public class Spaceship : MonoBehaviour
 
     private void EnablePlayerRigidbody()
     {
-        playerController.transform.SetParent(null);
+        if (playerController != null)
+            playerController.transform.SetParent(null, true);
     }
 
 }

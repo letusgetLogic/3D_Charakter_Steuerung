@@ -1,10 +1,15 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
+    [Header("References")]
+    [SerializeField] private PlayerGravity gravity;
+
     [Header("Horizontal Movement")]
     [SerializeField] private float speed = 150f;
+    [SerializeField] private float moonSpeed = 1f;
     [SerializeField] private float airAcceleration = 0.7f;
 
     [Tooltip("How much to smooth out the movement")]
@@ -32,17 +37,32 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Transform groundCheck;
     [SerializeField] private float groundCheckRadius = 0.5f;
 
-    [Header("Bowl to climb up")]
+    [Header("Bowl to prevent stucking and climb up on the corner of obstacles")]
     [SerializeField] private Transform bowlTransform;
     [SerializeField] private float bowlRadius = 0.5f;
     [SerializeField] private float climbGoal = 0.1f;
     [SerializeField] private float climbSpeed = 1f;
 
+    public bool IsOnSpaceship { get; set; } = false;
+    public bool IsOnTheMoon
+    {
+        get
+        {
+            if (gravity && gravity.Moon)
+                return gravity.Moon.IsInGravitySphere(col, myLayer);
+
+            return false;
+        }
+    }
+
     private Rigidbody rb;
+    private Collider col;
+    private LayerMask myLayer;
 
     private Vector2 moveInput;
     private Vector2 lookInput;
 
+    private Vector3 moveDirection;
     private Vector3 velocity;
     private Vector3 rotation; // Direction of horizontal movement of the camera.
     private Vector3 rotation2; // Direction of vertical movement of the camera.
@@ -51,67 +71,85 @@ public class PlayerController : MonoBehaviour
     private bool alreadyTriggered; // contextStartedJump
     private bool contextCanceledJump;
 
+
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        col = GetComponent<Collider>();
+        myLayer = gameObject.layer;
         Cursor.lockState = CursorLockMode.Locked;
     }
 
     private void FixedUpdate()
     {
-        Jump();
-    }
-
-    private void Update()
-    {
         LookAround();
+        Jump();
         ClimbUpOnEdge();
-        Move3D();
         Fall();
+        MoveWithGravity();
     }
 
-    public void OnMove(InputAction.CallbackContext context)
+    private void MoveWithGravity()
     {
-        moveInput = context.ReadValue<Vector2>();
+        // Apply moon gravity when player is leaving spaceship.
+        if (IsEffectedByMoonGravity())
+        {
+            gravity.SetMoonGravity();
+            gravity.Moon.Attract(transform);
+            MoveOnTheMoon();
+        }
+        else
+        {
+            gravity.SetEarthGravity();
+            Move3D();
+        }
     }
 
-    public void OnJump(InputAction.CallbackContext context)
+    public void OnMove(InputAction.CallbackContext _context)
     {
-        if (context.started)
+        moveInput = _context.ReadValue<Vector2>();
+    }
+
+    public void OnJump(InputAction.CallbackContext _context)
+    {
+        if (_context.started)
             contextStartedJump = true;
 
-        contextCanceledJump = context.canceled;
+        contextCanceledJump = _context.canceled;
 
     }
 
-    public void OnLook(InputAction.CallbackContext context)
+    public void OnLook(InputAction.CallbackContext _context)
     {
-        lookInput = context.ReadValue<Vector2>();
+        lookInput = _context.ReadValue<Vector2>();
     }
 
     private void Jump()
     {
-        // Buffer
-        if (canBufferJump && rb.velocity.y < 0)
+        if (IsEffectedByMoonGravity() == false)
         {
-            if (contextStartedJump) jumpBufferCountDown = jumpBuffer;
+            // Buffer
+            if (canBufferJump && rb.velocity.y < 0)
+            {
+                if (contextStartedJump) jumpBufferCountDown = jumpBuffer;
 
-            jumpBufferCountDown -= Time.deltaTime;
+                jumpBufferCountDown -= Time.fixedDeltaTime;
+            }
+
+            if (alreadyTriggered == false &&
+                /* Ground Jump */ (IsGrounded() && contextStartedJump) ||
+                /* Buffer */      (canBufferJump && jumpBufferCountDown > 0f && IsGrounded()))
+
+            {
+                rb.AddForce(0, jumpForce, 0, ForceMode.Impulse);
+
+                jumpBufferCountDown = 0f;
+                alreadyTriggered = true;
+            }
+            else alreadyTriggered = false;
+
+            contextStartedJump = false;
         }
-
-        if (alreadyTriggered == false &&
-            /* Ground Jump */ (IsGrounded() && contextStartedJump) ||
-            /* Buffer */      (canBufferJump && jumpBufferCountDown > 0f && IsGrounded()))
-
-        {
-            rb.AddForce(0, jumpForce, 0, ForceMode.Impulse);
-            
-            jumpBufferCountDown = 0f;
-            alreadyTriggered = true;
-        }
-        else alreadyTriggered = false;
-
-        contextStartedJump = false;
     }
 
     /// <summary>
@@ -121,9 +159,9 @@ public class PlayerController : MonoBehaviour
     private void Move3D()
     {
         float acceleration = IsGrounded() ? 1f : airAcceleration;
-        float moveSpeed = speed * acceleration;
+        float moveSpeed = speed * acceleration * Time.fixedDeltaTime;
 
-        Vector3 moveDirection = new Vector3(moveInput.x * moveSpeed, rb.velocity.y, moveInput.y * moveSpeed);
+        moveDirection = new Vector3(moveInput.x * moveSpeed, rb.velocity.y, moveInput.y * moveSpeed);
         moveDirection = Quaternion.Euler(0, transform.eulerAngles.y, 0) * moveDirection; // move direction to look direction
 
         // Move the character by finding the target velocity
@@ -132,17 +170,31 @@ public class PlayerController : MonoBehaviour
         rb.velocity = Vector3.SmoothDamp(rb.velocity, targetVelocity, ref velocity, movementSmoothing);
     }
 
+    private void MoveOnTheMoon()
+    {
+        float acceleration = IsGrounded() ? 1f : airAcceleration;
+        float moveSpeed = moonSpeed * acceleration * Time.fixedDeltaTime;
+
+        moveDirection = new Vector3(moveInput.x, 0, moveInput.y);
+
+        rb.MovePosition(rb.position + transform.TransformDirection(moveDirection.normalized) * moveSpeed);
+    }
+
     /// <summary>
     /// Rotates yaw of the player and pitch of camera pivot point.
     /// </summary>
     private void LookAround()
     {
-        rotation.y += lookInput.x * lookSensitivityHorizontal * Time.deltaTime; // yaw of the player
+        // If player is not effected by moon gravity, player can look around,
+        // because it has the issue with rotate & move direction on the moon.
+        if (IsEffectedByMoonGravity() == false)
+        {
+            rotation.y += lookInput.x * lookSensitivityHorizontal * Time.fixedDeltaTime; // yaw of the player
+            rotation2.y = rotation.y;
+        }
 
-        rotation2.x += lookInput.y * lookSensitivityVertikal * Time.deltaTime; // pitch of camera pivot point
-
+        rotation2.x += lookInput.y * lookSensitivityVertikal * Time.fixedDeltaTime; // pitch of camera pivot point
         rotation2.x = Mathf.Clamp(rotation2.x, lookDeepEndAngle, lookHighEndAngle); // pitch in between low and high end angle
-        rotation2.y = rotation.y;
 
         transform.eulerAngles = rotation; // yaw of the player
 
@@ -163,7 +215,7 @@ public class PlayerController : MonoBehaviour
         {
             // Move the player up to the bowl position
             Vector3 targetPosition = new Vector3(transform.position.x, transform.position.y + climbGoal, transform.position.z);
-            transform.position = Vector3.Lerp(transform.position, targetPosition, Time.deltaTime * speed);
+            transform.position = Vector3.Lerp(transform.position, targetPosition, Time.fixedDeltaTime * speed);
         }
     }
 
@@ -183,11 +235,16 @@ public class PlayerController : MonoBehaviour
     /// <returns></returns>
     bool IsBowlToClimbGrounded()
     {
-        if (IsGrounded()) 
+        if (IsGrounded())
             return false;
-        
+
         Collider[] colliders = Physics.OverlapSphere(bowlTransform.position, bowlRadius, groundLayer);
         return colliders.Length > 0;
+    }
+
+    private bool IsEffectedByMoonGravity()
+    {
+        return IsOnTheMoon && IsOnSpaceship == false;
     }
 
     void OnDrawGizmos()
@@ -199,9 +256,4 @@ public class PlayerController : MonoBehaviour
         Gizmos.DrawWireSphere(bowlTransform.position, bowlRadius);
     }
 
-    public void EnableRigid(bool _enable)
-    {
-        rb.isKinematic = !_enable;
-        rb.detectCollisions = _enable;
-    }
 }
