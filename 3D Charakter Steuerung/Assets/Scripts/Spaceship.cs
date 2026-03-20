@@ -32,7 +32,7 @@ public class Spaceship : MonoBehaviour
     {
         if (lerp)
         {
-            lerp.OnPosition += EnablePlayerRigidbody;
+            lerp.OnPosition += SetPlayerToNoParent;
         }
     }
 
@@ -40,7 +40,7 @@ public class Spaceship : MonoBehaviour
     {
         if (lerp)
         {
-            lerp.OnPosition -= EnablePlayerRigidbody;
+            lerp.OnPosition -= SetPlayerToNoParent;
         }
     }
 
@@ -63,7 +63,7 @@ public class Spaceship : MonoBehaviour
 
     private void OnTriggerExit(Collider _collider)
     {
-            if (_collider.CompareTag("Player"))
+        if (_collider.CompareTag("Player"))
         {
             playerController = _collider.GetComponent<PlayerController>();
             playerController.IsOnSpaceship = false;
@@ -78,6 +78,11 @@ public class Spaceship : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// With a time delay sets the player as child and triggers once "move to target" method on lerp script.
+    /// </summary>
+    /// <param name="_player"></param>
+    /// <returns></returns>
     private IEnumerator FlyToTheMoon(Transform _player)
     {
         yield return new WaitForSeconds(delayAnimUp);
@@ -92,11 +97,14 @@ public class Spaceship : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// With a time delay triggers once "move to target" method on lerp script.
+    /// </summary>
+    /// <param name="_player"></param>
+    /// <returns></returns>
     private IEnumerator BackToHome(Transform _player)
     {
         yield return new WaitForSeconds(delayAnimDown);
-
-
 
         if (lerp)
         {
@@ -104,7 +112,10 @@ public class Spaceship : MonoBehaviour
         }
     }
 
-    private void EnablePlayerRigidbody()
+    /// <summary>
+    /// Sets the player to no parent.
+    /// </summary>
+    private void SetPlayerToNoParent()
     {
         if (playerController != null)
             playerController.transform.SetParent(null, true);

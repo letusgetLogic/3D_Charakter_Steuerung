@@ -19,6 +19,19 @@ public class InputManager : MonoBehaviour
         Instance = this;
     }
 
+
+    /// <summary>
+    /// Called when menu button in settings is clicked.
+    /// </summary>
+    public void OnMenuButton()
+    {
+        SceneManager.LoadScene("MenuScene");
+    }
+
+    /// <summary>
+    /// Called when escape button is pressed. Not working in editor.
+    /// </summary>
+    /// <param name="_context"></param>
     public void OnEscape(InputAction.CallbackContext _context)
     {
         if (_context.started)
@@ -36,18 +49,30 @@ public class InputManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Called when play button in menu is pressed.
+    /// Called when prototype button in menu is clicked.
     /// </summary>
-    public void OnPlayButton()
+    public void OnPrototypeButton()
     {
         SceneManager.LoadScene("PrototypeScene");
     }
 
     /// <summary>
-    /// Called when menu button in settings is pressed.
+    /// Called when ToTheMoon-Level button is clicked.
     /// </summary>
-    public void OnMenuButton()
+    public void OnToTheMoonButton()
     {
-        SceneManager.LoadScene("MenuScene");
+        SceneManager.LoadScene("ToTheMoon");
+    }
+
+    /// <summary>
+    /// Called when quit button is clicked.
+    /// </summary>
+    public void OnQuitButton()
+    {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
     }
 }

@@ -6,6 +6,12 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/SampleScene.unity
-    guid: 99c9720ab356a0642a771bea13969a05
+    path: Assets/Scenes/MenuScene.unity
+    guid: 0fb80c95404f6d64696ae6e01895d34f
+  - enabled: 1
+    path: Assets/Scenes/PrototypeScene.unity
+    guid: d77b7cb1549dc7645b0ce905dcec4690
+  - enabled: 1
+    path: Assets/Scenes/ToTheMoon.unity
+    guid: 2a19b3958c1856b40a60d6298c2a99a5
   m_configObjects: {}

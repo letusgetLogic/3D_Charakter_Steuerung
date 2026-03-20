@@ -14,17 +14,22 @@ public class PlayerGravity : MonoBehaviour
         rb = GetComponent<Rigidbody>();
     }
 
+    /// <summary>
+    /// Disables velocity + use of gravity on rigidbody.
+    /// </summary>
     public void SetMoonGravity()
     {
         if (isSettingMoonGravity == false)
         {
-            //rb.constraints = RigidbodyConstraints.FreezeRotation;
             rb.velocity = Vector3.zero;
             rb.useGravity = false;
             isSettingMoonGravity = true;
         }
     }
 
+    /// <summary>
+    /// Enables use of gravity on rigidbody.
+    /// </summary>
     public void SetEarthGravity()
     {
         if (isSettingMoonGravity)

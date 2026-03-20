@@ -8,7 +8,10 @@ public class MoonGravity : MonoBehaviour
     [SerializeField]
     private float gravityStrength = -10.0f;
    
-
+    /// <summary>
+    /// Add force to rigidbody, rotate body upright against the gravity direction.
+    /// </summary>
+    /// <param name="_body"></param>
     public void Attract(Transform _body)
     {
         // First we define the up directions of gravity and body.
@@ -26,7 +29,7 @@ public class MoonGravity : MonoBehaviour
     }
 
     /// <summary>
-    /// Checks overlap of collider with bowl position on ground's collider.
+    /// Checks overlap of colliders in the gravity sphere.
     /// </summary>
     /// <returns></returns>
     public bool IsInGravitySphere(Collider _searcher, LayerMask _layer)

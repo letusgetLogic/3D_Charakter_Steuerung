@@ -17,6 +17,10 @@ public class GameManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
+    /// <summary>
+    /// Set game paused/continue + mouse locked/free
+    /// </summary>
+    /// <param name="_isPaused"></param>
     public void SetPaused(bool _isPaused)
     {
         IsPaused = _isPaused;

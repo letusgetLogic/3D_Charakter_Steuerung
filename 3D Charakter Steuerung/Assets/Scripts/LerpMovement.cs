@@ -8,6 +8,9 @@ public class LerpMovement : MonoBehaviour
     [SerializeField] private Transform definedTargetTransform;
     [SerializeField] private bool isRunningBackward = false;
 
+    /// <summary>
+    /// Invoked when the object to moving reached goal.
+    /// </summary>
     public Action OnPosition { get; set; }
 
     private enum Direction
@@ -21,7 +24,6 @@ public class LerpMovement : MonoBehaviour
     private float currentValue = 0f;
     private Vector3 defaultPosition;
     private Vector3 targetPosition;
-    private Transform targetTransform;
 
     private float animTime = 1f;
     private AnimationCurve animCurve;
@@ -44,7 +46,6 @@ public class LerpMovement : MonoBehaviour
     {
         currentValue = 0f;
         defaultPosition = transform.position;
-        targetTransform = transform;
 
         if (definedTargetTransform)
             targetPosition = definedTargetTransform.position;
@@ -68,7 +69,7 @@ public class LerpMovement : MonoBehaviour
     }
 
     /// <summary>
-    /// Scales up.
+    /// Interpolates up to 1.
     /// </summary>
     /// <exception cref="NotImplementedException"></exception>
     private void MoveForward()
@@ -94,7 +95,7 @@ public class LerpMovement : MonoBehaviour
     }
 
     /// <summary>
-    /// Scales down.
+    /// Interpolates down to 0.
     /// </summary>
     /// <exception cref="NotImplementedException"></exception>
     private void MoveBackward()
@@ -113,7 +114,7 @@ public class LerpMovement : MonoBehaviour
     }
 
     /// <summary>
-    /// Interpolates the value and sets the scale.
+    /// Interpolates the value and sets the position.
     /// </summary>
     /// <param name="_target"></param>
     private void Interpolate(float _target)
@@ -126,12 +127,11 @@ public class LerpMovement : MonoBehaviour
     }
 
     /// <summary>
-    /// Sets the scale.
+    /// Sets the position.
     /// </summary>
     /// <param name="rValue"></param>
     private void SetPosition(Vector3 _pos)
     {
         transform.position = _pos;
-        //Debug.Log($"{gameObject.name} transform.position {transform.position}");
     }
 }

@@ -211,13 +211,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 08016c278b212dc4bb480cfb04342ef5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 15
+  gravity: {fileID: 0}
+  speed: 400
+  runMultiplier: 2
+  moonSpeed: 1
   airAcceleration: 0.5
   movementSmoothing: 0.15
   jumpForce: 600
   gravityScale: 1.05
   canBufferJump: 1
-  jumpBuffer: 0.2
+  jumpBufferSpan: 0.2
   cameraPivotPointTransform: {fileID: 5848729238256619524}
   lookSensitivityHorizontal: 10
   lookSensitivityVertikal: 10
@@ -230,6 +233,7 @@ MonoBehaviour:
   groundCheckRadius: 0.4
   bowlTransform: {fileID: 6649778706315382312}
   bowlRadius: 0.5
+  climbGoal: 0.1
 --- !u!54 &1992371865768015965
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -332,9 +336,25 @@ MonoBehaviour:
     m_ActionId: 1a6f0fab-0723-48fc-ab0f-18215e1dad01
     m_ActionName: Player/Look[/Mouse/delta]
   - m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 6748057723417741546}
+        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+        m_MethodName: OnRun
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
     m_ActionId: 3c250744-6eae-4615-9008-e90bd1359f01
     m_ActionName: Player/Run[/Keyboard/shift]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 09c08f68-a7b4-46ff-bf59-a02975488337
+    m_ActionName: General/Escape[/Keyboard/escape]
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Player
