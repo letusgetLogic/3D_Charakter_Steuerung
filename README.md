@@ -1,6 +1,6 @@
 ------------------------------------------------------------------------
 # 3D Charakter Steuerung
-Ein 3D-Unity-Projekt für die Implementierung von der Third-Person-Steuerung.
+Ein Unity-Projekt für die Implementierung von der 3D Charakter Steuerung.
 
 ------------------------------------------------------------------------
 
