@@ -22,7 +22,7 @@ Aufgaben:
 ## Features
 - First-Person und Third-Person Perspektiven
 - Kamera-Bewegung
-- Horizontale Fortbewegung mit 2 Physik-Systeme
+- Horizontale Fortbewegung mit 2 Physik-Systemen
 - Springen mit AddForce und einer Jump-Buffer-Spanne
 - Selbstgebauter Linear-Interpolation-Komponent
 - Implementierung von Steuerung per Maus & Tastatur und Controller mit Input Actions
