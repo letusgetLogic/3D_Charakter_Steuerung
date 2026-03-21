@@ -30,11 +30,9 @@ Aufgaben:
 
 ------------------------------------------------------------------------
 
-## Steuerung
-Escape - Play / Pause
-WASD / Arrows - Run
-Space - Jump
-Left shift - Sprint
+## Demonstration
+
+
 
 ------------------------------------------------------------------------
 
