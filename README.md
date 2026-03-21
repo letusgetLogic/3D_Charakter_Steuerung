@@ -28,3 +28,13 @@ Aufgaben:
 - Implementierung von Steuerung per Maus & Tastatur und Controller mit Input Actions
 
 ------------------------------------------------------------------------
+
+## Steuerung
+Escape - Play / Pause
+WASD / Arrows - Run
+Space - Jump
+Left shift - Sprint
+
+------------------------------------------------------------------------
+
+
