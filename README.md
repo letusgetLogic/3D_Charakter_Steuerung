@@ -26,6 +26,7 @@ Aufgaben:
 - Springen mit AddForce und einer Jump-Buffer-Spanne
 - Selbstgebauter Linear-Interpolation-Komponent
 - Implementierung von Steuerung per Maus & Tastatur und Controller mit Input Actions
+- Custom Gravity System
 
 ------------------------------------------------------------------------
 
