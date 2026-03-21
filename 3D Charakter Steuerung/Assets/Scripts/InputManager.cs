@@ -26,6 +26,7 @@ public class InputManager : MonoBehaviour
     public void OnMenuButton()
     {
         SceneManager.LoadScene("MenuScene");
+        Time.timeScale = 1.0f;
     }
 
     /// <summary>
@@ -40,6 +41,7 @@ public class InputManager : MonoBehaviour
             if (SceneManager.GetActiveScene().name == "MenuScene")
             {
                 SceneManager.LoadScene("MenuScene");
+                Time.timeScale = 1.0f;
                 return;
             }
 
@@ -54,6 +56,7 @@ public class InputManager : MonoBehaviour
     public void OnPrototypeButton()
     {
         SceneManager.LoadScene("PrototypeScene");
+        Time.timeScale = 1.0f;
     }
 
     /// <summary>
@@ -62,6 +65,7 @@ public class InputManager : MonoBehaviour
     public void OnToTheMoonButton()
     {
         SceneManager.LoadScene("ToTheMoon");
+        Time.timeScale = 1.0f;
     }
 
     /// <summary>

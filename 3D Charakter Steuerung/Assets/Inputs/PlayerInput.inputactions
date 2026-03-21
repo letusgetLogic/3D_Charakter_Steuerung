@@ -15,6 +15,15 @@
                     "initialStateCheck": true
                 },
                 {
+                    "name": "Escape",
+                    "type": "Button",
+                    "id": "586a982f-d039-4023-ab9c-39b1497fbba9",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
                     "name": "Jump",
                     "type": "Button",
                     "id": "ff963286-f2c7-4a33-b792-3ac15f9cc171",
@@ -339,28 +348,11 @@
                     "action": "Run",
                     "isComposite": false,
                     "isPartOfComposite": false
-                }
-            ]
-        },
-        {
-            "name": "General",
-            "id": "8c8f215e-2725-47eb-8f72-8a1a5a519109",
-            "actions": [
-                {
-                    "name": "Escape",
-                    "type": "Button",
-                    "id": "09c08f68-a7b4-46ff-bf59-a02975488337",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                }
-            ],
-            "bindings": [
+                },
                 {
                     "name": "",
-                    "id": "35dcad50-e95b-497a-80d5-1eb7e75fb64e",
-                    "path": "<Keyboard>/escape",
+                    "id": "69e1b281-e654-4f3c-ab68-ee4f634074ff",
+                    "path": "<Keyboard>/p",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -370,7 +362,7 @@
                 },
                 {
                     "name": "",
-                    "id": "d6916d32-0c13-4cf3-a2ca-9d9c4886e6a7",
+                    "id": "7809a8bf-cbc0-4dc2-8684-a9add5abb204",
                     "path": "<Gamepad>/select",
                     "interactions": "",
                     "processors": "",
