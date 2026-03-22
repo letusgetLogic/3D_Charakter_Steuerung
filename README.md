@@ -7,7 +7,7 @@ Ein Unity-Projekt für die Implementierung von der 3D Charakter Steuerung.
 ## Projekt
 Dieses Projekt wurde für das Modul **4FSC0PD002** am **SAE Institute Hannover** erstellt.
 
-Entwicklungs-Zeitraum: **27.12.2024 - 22.01.2024**  
+Entwicklungs-Zeitraum: **27.12.2024 - 22.01.2025**  
 - Update am 21.03.2026
 
 Aufgaben:
